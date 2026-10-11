@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/alphacoder0x/go-rest-api/internal/config"
+	"github.com/alphacoder0x/go-rest-api/internal/http/handlers/student"
 )
 
 func main() {
@@ -23,13 +24,11 @@ func main() {
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome to go rest api"))
-	})
+	router.HandleFunc("POST /api/students", student.New())
 
-	router.HandleFunc("GET /api/data",func(w http.ResponseWriter,r *http.Request){
-		w.Write([]byte("serving for data"))
-	})
+	router.HandleFunc("GET /api/students",student.GetStudents())
+
+	// router.HandleFunc("PUT /api/students",student.GetStudents())
 	//setup http server
 
 	server := http.Server{
@@ -37,10 +36,10 @@ func main() {
 		Handler: router,
 	}
 
-	done := make(chan os.Signal,1)
+	done := make(chan os.Signal, 1)
 
-	signal.Notify(done,os.Interrupt,syscall.SIGINT,syscall.SIGTERM)
-	go func(){
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
 		fmt.Println("server started", cfg.Addr)
 		err := server.ListenAndServe()
 		if err != nil {
@@ -51,15 +50,15 @@ func main() {
 	<-done
 
 	slog.Info("shutting down the server")
-	
-	ctx,cancel := context.WithTimeout(context.Background(),5 * time.Second)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		slog.Error("failed to shutdown server",slog.String("error",err.Error()))
+		slog.Error("failed to shutdown server", slog.String("error", err.Error()))
 	}
 
 	slog.Info("server shutdown successfully")
-	
+
 }
